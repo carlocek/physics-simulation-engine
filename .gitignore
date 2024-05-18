@@ -1,0 +1,7 @@
+_build/
+.settings/
+.project
+.cproject
+.properties
+.iss
+.exe
