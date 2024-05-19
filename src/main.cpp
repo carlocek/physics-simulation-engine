@@ -11,26 +11,32 @@ int main()
 	const int WIN_WIDTH = 1000;
 	const int WIN_HEIGHT = 1000;
 	const float frameRate = 60.f;
-	bool mousePressed;
+	const float timeStep = 1.0f / frameRate;
+	const int subSteps = 4;
+	const sf::Vector2f objectSpawnPosition = {500.0f, 200.0f};
+	const float objectSpawnSpeed = 1000.f;
+	const float objectSpawnDelay = 0.05f;
+//	const int maxObjCount = 5000;
+	const float objRadius = 6.f;
+
+	sf::Font font;
+	if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf"))
+	{
+		std::cerr << "Failed to load font\n";
+		return -1;
+	}
 
     sf::RenderWindow window(sf::VideoMode(WIN_WIDTH, WIN_HEIGHT), "Verlet Engine");
     window.setFramerateLimit(frameRate);
 
-    const float timeStep = 1.0f / frameRate;
-    const int subSteps = 8;
     sf::Vector2u windowSize = window.getSize();
     sf::FloatRect windowBounds(0, 0, windowSize.x, windowSize.y);
-    Engine engine(windowBounds, timeStep, subSteps);
-
-    const sf::Vector2f objectSpawnPosition = {500.0f, 200.0f};
-    const float objectSpawnSpeed = 1000.f;
-    const float objectSpawnDelay = 0.001f;
-    const int maxObjCount = 1000;
-    int objCount = 0;
-
+    Engine engine(windowBounds, timeStep, subSteps, 2.0*objRadius);
     Renderer renderer(window);
 
-    sf::Clock clock;
+    int objCount = 0;
+    sf::Clock frameClock;
+    sf::Clock spawnClock;
     while (window.isOpen())
 	{
 		sf::Event event;
@@ -41,11 +47,27 @@ int main()
 				window.close();
 			}
 		}
-		if(objCount < maxObjCount && clock.getElapsedTime().asSeconds() >= objectSpawnDelay)
+
+		sf::Time frameTime = frameClock.restart();
+		float frameTimeSeconds = frameTime.asSeconds();
+		if (frameTimeSeconds < 0.0001f) {
+			frameTimeSeconds = 0.0001f; // Avoid division by zero
+		}
+		float currentFrameRate = 1.0f / frameTimeSeconds;
+//		std::cout << currentFrameRate << std::endl;
+
+		if(currentFrameRate < frameRate-40)
 		{
-			clock.restart();
+			std::cout << "framerate dropped below 60" << std::endl;
+			std::cout << "max objects: " + std::to_string(objCount) << std::endl;
+			break;
+		}
+
+		if(spawnClock.getElapsedTime().asSeconds() >= objectSpawnDelay)
+		{
+			spawnClock.restart();
 			objCount++;
-			VerletObject obj(objectSpawnPosition, 8.f);
+			VerletObject obj(objectSpawnPosition, objRadius);
 			const float angle  = M_PI/6.f;
 			engine.setObjectVelocity(obj, objectSpawnSpeed * sf::Vector2f{cos(angle), sin(angle)});
 			engine.getObjects().push_back(obj);
@@ -53,6 +75,12 @@ int main()
 		engine.update();
 		window.clear(sf::Color::Black);
 		renderer.render(engine);
+
+		sf::Text info("objects: " + std::to_string(objCount), font, 14);
+		info.setFillColor(sf::Color::White);
+		info.setPosition(10, 10);
+		window.draw(info);
+
 		window.display();
 	}
 }

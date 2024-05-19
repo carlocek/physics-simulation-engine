@@ -2,9 +2,13 @@
 
 #include "Engine.hpp"
 
-Engine::Engine(sf::FloatRect bounds, float stepdt, int subSteps)
+Engine::Engine(sf::FloatRect bounds, float stepdt, int subSteps, float cellSize)
 : bounds(bounds), stepdt(stepdt), subSteps(subSteps)
-{}
+{
+	grid.width = bounds.width;
+	grid.height = bounds.height;
+	grid.cellSize = cellSize;
+}
 
 void Engine::update()
 {

@@ -12,7 +12,7 @@ Renderer::Renderer(sf::RenderTarget& window)
 void Renderer::render(Engine& engine)
 {
 	sf::CircleShape circle(1.0f);
-	circle.setPointCount(32);
+//	circle.setPointCount(32);
 	circle.setOrigin(1.0f, 1.0f);
 	for (const auto& obj : engine.getObjects())
 	{
