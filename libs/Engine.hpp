@@ -12,7 +12,12 @@ struct CollisionGrid
 	int width;
 	int height;
 	int cellSize;
-	std::unordered_map<int, std::vector<VerletObject*>> cells;
+	std::vector<std::vector<VerletObject*>> cells;
+	void clear()
+	{
+		for(auto& cell : cells)
+			cell.clear();
+	}
 };
 
 class Engine
@@ -73,40 +78,83 @@ private:
 //		}
 //	}
 
+//	void checkCollisions()
+//	{
+//	    const float responseCoef = 1.0f;
+//	    populateGrid();
+//	    for(auto& cell : grid.cells)
+//	    {
+//	    	if(!cell.second.empty())
+//	    	{
+//				std::vector<VerletObject*>& cellObjects = cell.second;
+//				// Check collisions within the same cell
+//				for(int i = 0; i < cellObjects.size(); i++)
+//				{
+//					VerletObject& obj1 = *cellObjects[i];
+//					for (int j = i + 1; j < cellObjects.size(); j++)
+//					{
+//						VerletObject& obj2 = *cellObjects[j];
+//						solveCollision(obj1, obj2);
+//					}
+//				}
+//				// Check collisions with neighboring cells
+//				std::vector<int> neighbors = getNeighboringCells(cell.first);
+//				for(int neighborIndex : neighbors)
+//				{
+//					std::vector<VerletObject*>& neighborObjects = grid.cells[neighborIndex];
+//					for(VerletObject* obj1 : cellObjects)
+//					{
+//						for(VerletObject* obj2 : neighborObjects)
+//						{
+//							solveCollision(*obj1, *obj2);
+//						}
+//					}
+//				}
+//	    	}
+//	    }
+//	}
+
 	void checkCollisions()
 	{
-	    const float responseCoef = 1.0f;
-	    populateGrid();
-	    for(auto& cell : grid.cells)
-	    {
-	    	if(!cell.second.empty())
-	    	{
-				std::vector<VerletObject*>& cellObjects = cell.second;
-				// Check collisions within the same cell
-				for(int i = 0; i < cellObjects.size(); i++)
+		populateGrid();
+		for(int y = 0; y < grid.height; y++)
+		{
+			for(int x = 0; x < grid.width; x++)
+			{
+				int cellIndex = x + y * grid.width;
+				if(!grid.cells[cellIndex].empty())
 				{
-					VerletObject& obj1 = *cellObjects[i];
-					for (int j = i + 1; j < cellObjects.size(); j++)
+					std::vector<VerletObject*>& cellObjects = grid.cells[cellIndex];
+					// Check collisions within the same cell
+					for(int i = 0; i < cellObjects.size(); i++)
 					{
-						VerletObject& obj2 = *cellObjects[j];
-						solveCollision(obj1, obj2);
-					}
-				}
-				// Check collisions with neighboring cells
-				std::vector<int> neighbors = getNeighboringCells(cell.first);
-				for(int neighborIndex : neighbors)
-				{
-					std::vector<VerletObject*>& neighborObjects = grid.cells[neighborIndex];
-					for(VerletObject* obj1 : cellObjects)
-					{
-						for(VerletObject* obj2 : neighborObjects)
+						VerletObject& obj1 = *cellObjects[i];
+						for (int j = i + 1; j < cellObjects.size(); j++)
 						{
-							solveCollision(*obj1, *obj2);
+							VerletObject& obj2 = *cellObjects[j];
+							solveCollision(obj1, obj2);
+						}
+					}
+					// Check collisions with neighboring cells
+					std::vector<int> neighbors = getNeighboringCells(cellIndex);
+					for(int neighborIndex : neighbors)
+					{
+//						std::cout <<neighborIndex<<std::endl;
+						if(!grid.cells[neighborIndex].empty())
+						{
+							std::vector<VerletObject*>& neighborObjects = grid.cells[neighborIndex];
+							for(VerletObject* obj1 : cellObjects)
+							{
+								for(VerletObject* obj2 : neighborObjects)
+								{
+									solveCollision(*obj1, *obj2);
+								}
+							}
 						}
 					}
 				}
-	    	}
-	    }
+			}
+		}
 	}
 
 	void solveCollision(VerletObject& obj1, VerletObject& obj2)
@@ -129,7 +177,7 @@ private:
 
 	void populateGrid()
 	{
-		grid.cells.clear();
+		grid.clear();
 		for(VerletObject& obj : objects)
 		{
 			int cellIndex = getCellIndex(obj.getPosition());
@@ -149,6 +197,7 @@ private:
 	    std::vector<int> neighbors;
 	    int x = cellIndex % grid.width;
 	    int y = cellIndex / grid.width;
+//	    std::cout <<x<<y<<std::endl;
 	    for(int dx = -1; dx <= 1; ++dx)
 	    {
 	        for(int dy = -1; dy <= 1; ++dy)

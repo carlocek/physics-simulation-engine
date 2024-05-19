@@ -50,17 +50,14 @@ int main()
 
 		sf::Time frameTime = frameClock.restart();
 		float frameTimeSeconds = frameTime.asSeconds();
-		if (frameTimeSeconds < 0.0001f) {
-			frameTimeSeconds = 0.0001f; // Avoid division by zero
-		}
 		float currentFrameRate = 1.0f / frameTimeSeconds;
-//		std::cout << currentFrameRate << std::endl;
+		std::cout << currentFrameRate << std::endl;
 
 		if(currentFrameRate < frameRate-40)
 		{
 			std::cout << "framerate dropped below 60" << std::endl;
 			std::cout << "max objects: " + std::to_string(objCount) << std::endl;
-			break;
+//			break;
 		}
 
 		if(spawnClock.getElapsedTime().asSeconds() >= objectSpawnDelay)

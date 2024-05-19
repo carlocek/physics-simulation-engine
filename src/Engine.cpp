@@ -8,6 +8,7 @@ Engine::Engine(sf::FloatRect bounds, float stepdt, int subSteps, float cellSize)
 	grid.width = bounds.width;
 	grid.height = bounds.height;
 	grid.cellSize = cellSize;
+	grid.cells.resize(bounds.width * bounds.height);
 }
 
 void Engine::update()
