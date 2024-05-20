@@ -7,16 +7,28 @@
 
 #include "VerletObject.hpp"
 
+struct CollisionCell
+{
+	static constexpr int capacity = 4;
+	int objects[capacity] = {};
+	int objCount = 0;
+	void add(int id)
+	{
+		if(objCount < capacity)
+			objects[objCount++] = id;
+	}
+};
+
 struct CollisionGrid
 {
 	int width;
 	int height;
 	int cellSize;
-	std::vector<std::vector<VerletObject*>> cells;
+	std::vector<CollisionCell> cells;
 	void clear()
 	{
 		for(auto& cell : cells)
-			cell.clear();
+			cell.objCount = 0;
 	}
 };
 
@@ -48,107 +60,59 @@ private:
 			obj.checkBoundaries(bounds);
 	}
 
-//	void checkCollisions()
-//	{
-//		const float responseCoef = 1.0f; // to adjust collision elasticity
-//		// iterate on all objects
-//		for(int i = 0; i < objects.size(); i++)
-//		{
-//			VerletObject& obj1 = objects[i];
-//			// iterate on object involved in new collision pairs
-//			for(int j = i+1; j < objects.size(); j++)
-//			{
-//				VerletObject& obj2 = objects[j];
-//				const sf::Vector2f distVec = obj1.getPosition() - obj2.getPosition();
-//				const float distSqr = distVec.x * distVec.x + distVec.y * distVec.y;
-//				const float min_dist = obj1.getRadius() + obj2.getRadius();
-//				// check overlap
-//				if(distSqr < min_dist * min_dist)
-//				{
-//					const float dist = sqrt(distSqr);
-//					const sf::Vector2f distVecNor = distVec / dist;
-//					const float massRatio1 = obj1.getRadius() / (obj1.getRadius() + obj2.getRadius());
-//					const float massRatio2 = obj2.getRadius() / (obj1.getRadius() + obj2.getRadius());
-//					const float delta = 0.5f * responseCoef * (dist - min_dist);
-//					// update positions, moving each obj by half of the overlapping segment in opposite directions
-//					obj1.setPosition(obj1.getPosition() - distVecNor * (massRatio2 * delta));
-//					obj2.setPosition(obj2.getPosition() + distVecNor * (massRatio1 * delta));
-//				}
-//			}
-//		}
-//	}
+	void checkCollisionsNaive()
+	{
+		const float responseCoef = 1.0f; // to adjust collision elasticity
+		// iterate on all objects
+		for(int i = 0; i < objects.size(); i++)
+		{
+			VerletObject& obj1 = objects[i];
+			// iterate on object involved in new collision pairs
+			for(int j = i+1; j < objects.size(); j++)
+			{
+				VerletObject& obj2 = objects[j];
+				const sf::Vector2f distVec = obj1.getPosition() - obj2.getPosition();
+				const float distSqr = distVec.x * distVec.x + distVec.y * distVec.y;
+				const float min_dist = obj1.getRadius() + obj2.getRadius();
+				// check overlap
+				if(distSqr < min_dist * min_dist)
+				{
+					const float dist = sqrt(distSqr);
+					const sf::Vector2f distVecNor = distVec / dist;
+					const float massRatio1 = obj1.getRadius() / (obj1.getRadius() + obj2.getRadius());
+					const float massRatio2 = obj2.getRadius() / (obj1.getRadius() + obj2.getRadius());
+					const float delta = 0.5f * responseCoef * (dist - min_dist);
+					// update positions, moving each obj by half of the overlapping segment in opposite directions
+					obj1.setPosition(obj1.getPosition() - distVecNor * (massRatio2 * delta));
+					obj2.setPosition(obj2.getPosition() + distVecNor * (massRatio1 * delta));
+				}
+			}
+		}
+	}
 
-//	void checkCollisions()
-//	{
-//	    const float responseCoef = 1.0f;
-//	    populateGrid();
-//	    for(auto& cell : grid.cells)
-//	    {
-//	    	if(!cell.second.empty())
-//	    	{
-//				std::vector<VerletObject*>& cellObjects = cell.second;
-//				// Check collisions within the same cell
-//				for(int i = 0; i < cellObjects.size(); i++)
-//				{
-//					VerletObject& obj1 = *cellObjects[i];
-//					for (int j = i + 1; j < cellObjects.size(); j++)
-//					{
-//						VerletObject& obj2 = *cellObjects[j];
-//						solveCollision(obj1, obj2);
-//					}
-//				}
-//				// Check collisions with neighboring cells
-//				std::vector<int> neighbors = getNeighboringCells(cell.first);
-//				for(int neighborIndex : neighbors)
-//				{
-//					std::vector<VerletObject*>& neighborObjects = grid.cells[neighborIndex];
-//					for(VerletObject* obj1 : cellObjects)
-//					{
-//						for(VerletObject* obj2 : neighborObjects)
-//						{
-//							solveCollision(*obj1, *obj2);
-//						}
-//					}
-//				}
-//	    	}
-//	    }
-//	}
 
 	void checkCollisions()
 	{
 		populateGrid();
-		for(int y = 0; y < grid.height; y++)
+		for(int cellIndex = 0; cellIndex < grid.width*grid.height; cellIndex++)
 		{
-			for(int x = 0; x < grid.width; x++)
+			if(grid.cells[cellIndex].objCount > 0)
 			{
-				int cellIndex = x + y * grid.width;
-				if(!grid.cells[cellIndex].empty())
+				CollisionCell& cell = grid.cells[cellIndex];
+				// check collisions with neighboring cells and current cell itself
+				std::vector<int> neighbors = getNeighboringCells(cellIndex);
+				for(int neighborIndex : neighbors)
 				{
-					std::vector<VerletObject*>& cellObjects = grid.cells[cellIndex];
-					// Check collisions within the same cell
-					for(int i = 0; i < cellObjects.size(); i++)
+					if(grid.cells[neighborIndex].objCount > 0)
 					{
-						VerletObject& obj1 = *cellObjects[i];
-						for (int j = i + 1; j < cellObjects.size(); j++)
+						CollisionCell& neighborCell = grid.cells[neighborIndex];
+						for(int i = 0; i < cell.objCount; i++)
 						{
-							VerletObject& obj2 = *cellObjects[j];
-							solveCollision(obj1, obj2);
-						}
-					}
-					// Check collisions with neighboring cells
-					std::vector<int> neighbors = getNeighboringCells(cellIndex);
-					for(int neighborIndex : neighbors)
-					{
-//						std::cout <<neighborIndex<<std::endl;
-						if(!grid.cells[neighborIndex].empty())
-						{
-							std::vector<VerletObject*>& neighborObjects = grid.cells[neighborIndex];
-							for(VerletObject* obj1 : cellObjects)
+							VerletObject& obj1 = objects[cell.objects[i]];
+							for (int j = 0; j < neighborCell.objCount; j++)
 							{
-								for(VerletObject* obj2 : neighborObjects)
-								{
-									solveCollision(*obj1, *obj2);
-								}
+								VerletObject& obj2 = objects[neighborCell.objects[j]];
+								solveCollision(obj1, obj2);
 							}
 						}
 					}
@@ -160,10 +124,11 @@ private:
 	void solveCollision(VerletObject& obj1, VerletObject& obj2)
 	{
 		const float responseCoef = 1.0f;
+		const float eps = 0.0001f;
 	    const sf::Vector2f distVec = obj1.getPosition() - obj2.getPosition();
 	    const float distSqr = distVec.x * distVec.x + distVec.y * distVec.y;
 	    const float min_dist = obj1.getRadius() + obj2.getRadius();
-	    if(distSqr < min_dist * min_dist)
+	    if(distSqr < min_dist * min_dist && distSqr > eps)
 	    {
 	        const float dist = sqrt(distSqr);
 	        const sf::Vector2f distVecNor = distVec / dist;
@@ -178,10 +143,12 @@ private:
 	void populateGrid()
 	{
 		grid.clear();
+		int i = 0;
 		for(VerletObject& obj : objects)
 		{
 			int cellIndex = getCellIndex(obj.getPosition());
-			grid.cells[cellIndex].push_back(&obj);
+			grid.cells[cellIndex].add(i);
+			i++;
 		}
 	}
 
@@ -197,16 +164,12 @@ private:
 	    std::vector<int> neighbors;
 	    int x = cellIndex % grid.width;
 	    int y = cellIndex / grid.width;
-//	    std::cout <<x<<y<<std::endl;
 	    for(int dx = -1; dx <= 1; ++dx)
 	    {
 	        for(int dy = -1; dy <= 1; ++dy)
 	        {
-	            if(dx != 0 || dy != 0)
-	            {
-	                if(x + dx >= 0 && x + dx < grid.width && y + dy >= 0 && y + dy < grid.height)
-	                    neighbors.push_back((x + dx) + (y + dy) * grid.width);
-	            }
+				if(x + dx >= 0 && x + dx < grid.width && y + dy >= 0 && y + dy < grid.height)
+					neighbors.push_back((x + dx) + (y + dy) * grid.width);
 	        }
 	    }
 	    return neighbors;

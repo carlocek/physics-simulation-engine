@@ -16,7 +16,8 @@ int main()
 	const sf::Vector2f objectSpawnPosition = {500.0f, 200.0f};
 	const float objectSpawnSpeed = 1000.f;
 	const float objectSpawnDelay = 0.05f;
-//	const int maxObjCount = 5000;
+	const float angle  = -M_PI/6.f;
+	const int maxObjCount = 8000;
 	const float objRadius = 6.f;
 
 	sf::Font font;
@@ -51,7 +52,7 @@ int main()
 		sf::Time frameTime = frameClock.restart();
 		float frameTimeSeconds = frameTime.asSeconds();
 		float currentFrameRate = 1.0f / frameTimeSeconds;
-		std::cout << currentFrameRate << std::endl;
+//		std::cout << currentFrameRate << std::endl;
 
 		if(currentFrameRate < frameRate-40)
 		{
@@ -60,12 +61,11 @@ int main()
 //			break;
 		}
 
-		if(spawnClock.getElapsedTime().asSeconds() >= objectSpawnDelay)
+		if(objCount < maxObjCount && spawnClock.getElapsedTime().asSeconds() >= objectSpawnDelay)
 		{
 			spawnClock.restart();
 			objCount++;
 			VerletObject obj(objectSpawnPosition, objRadius);
-			const float angle  = M_PI/6.f;
 			engine.setObjectVelocity(obj, objectSpawnSpeed * sf::Vector2f{cos(angle), sin(angle)});
 			engine.getObjects().push_back(obj);
 		}
