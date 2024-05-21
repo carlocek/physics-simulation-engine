@@ -8,16 +8,17 @@
 
 int main()
 {
-	const int WIN_WIDTH = 1000;
-	const int WIN_HEIGHT = 1000;
+	const int WIN_WIDTH = 600;
+	const int WIN_HEIGHT = 600;
 	const float frameRate = 60.f;
 	const float timeStep = 1.0f / frameRate;
 	const int subSteps = 4;
-	const sf::Vector2f objectSpawnPosition = {500.0f, 200.0f};
+	const sf::Vector2f objectSpawnPosition = {100.0f, 100.0f};
 	const float objectSpawnSpeed = 1000.f;
 	const float objectSpawnDelay = 0.05f;
-//	const int maxObjCount = 5000;
-	const float objRadius = 6.f;
+	const float angle  = -M_PI/6.f;
+	const int maxObjCount = 8000;
+	const float objRadius = 3.f;
 
 	sf::Font font;
 	if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf"))
@@ -50,9 +51,6 @@ int main()
 
 		sf::Time frameTime = frameClock.restart();
 		float frameTimeSeconds = frameTime.asSeconds();
-		if (frameTimeSeconds < 0.0001f) {
-			frameTimeSeconds = 0.0001f; // Avoid division by zero
-		}
 		float currentFrameRate = 1.0f / frameTimeSeconds;
 //		std::cout << currentFrameRate << std::endl;
 
@@ -60,15 +58,14 @@ int main()
 		{
 			std::cout << "framerate dropped below 60" << std::endl;
 			std::cout << "max objects: " + std::to_string(objCount) << std::endl;
-			break;
+//			break;
 		}
 
-		if(spawnClock.getElapsedTime().asSeconds() >= objectSpawnDelay)
+		if(objCount < maxObjCount && spawnClock.getElapsedTime().asSeconds() >= objectSpawnDelay)
 		{
 			spawnClock.restart();
 			objCount++;
 			VerletObject obj(objectSpawnPosition, objRadius);
-			const float angle  = M_PI/6.f;
 			engine.setObjectVelocity(obj, objectSpawnSpeed * sf::Vector2f{cos(angle), sin(angle)});
 			engine.getObjects().push_back(obj);
 		}
