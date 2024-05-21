@@ -5,20 +5,20 @@
 Engine::Engine(sf::FloatRect bounds, float stepdt, int subSteps, float cellSize)
 : bounds(bounds), stepdt(stepdt), subSteps(subSteps)
 {
-	grid.width = bounds.width;
-	grid.height = bounds.height;
+	grid.width = bounds.width / cellSize;
+	grid.height = bounds.height / cellSize;
 	grid.cellSize = cellSize;
-	grid.cells.resize(bounds.width * bounds.height);
+	grid.cells.resize(grid.width * grid.height);
 }
 
 void Engine::update()
 {
 	float subdt = getTimeSubstep();
-	for(int i = 0; i < subSteps; i++)
+	for(uint8_t i = 0; i < subSteps; i++)
 	{
-		applyGravity();
 		checkCollisions();
 		checkBoundaries();
+		applyGravity();
 		updatePositions(subdt);
 	}
 }

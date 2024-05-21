@@ -8,17 +8,17 @@
 
 int main()
 {
-	const int WIN_WIDTH = 1000;
-	const int WIN_HEIGHT = 1000;
+	const int WIN_WIDTH = 600;
+	const int WIN_HEIGHT = 600;
 	const float frameRate = 60.f;
 	const float timeStep = 1.0f / frameRate;
 	const int subSteps = 4;
-	const sf::Vector2f objectSpawnPosition = {500.0f, 200.0f};
+	const sf::Vector2f objectSpawnPosition = {100.0f, 100.0f};
 	const float objectSpawnSpeed = 1000.f;
 	const float objectSpawnDelay = 0.05f;
 	const float angle  = -M_PI/6.f;
 	const int maxObjCount = 8000;
-	const float objRadius = 6.f;
+	const float objRadius = 3.f;
 
 	sf::Font font;
 	if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf"))
