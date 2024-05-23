@@ -11,8 +11,8 @@ FetchContent_Declare(SFML
 FetchContent_MakeAvailable(SFML)
 
 include_directories(libs)
-set(SOURCES src/main.cpp src/Engine.cpp src/Renderer.cpp src/VerletObject.cpp
-			libs/Engine.hpp libs/Renderer.hpp libs/VerletObject.hpp)
+set(SOURCES src/main.cpp src/Engine.cpp src/Renderer.cpp src/VerletObject.cpp src/Link.cpp
+			libs/Engine.hpp libs/Renderer.hpp libs/VerletObject.hpp libs/Link.hpp)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE sfml-graphics)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)

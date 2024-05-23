@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "VerletObject.hpp"
+#include "Link.hpp"
 
 struct CollisionCell
 {
@@ -36,6 +37,7 @@ class Engine
 {
 private:
 	std::vector<VerletObject> objects;
+	std::vector<Link> links;
 	sf::Vector2f gravity = {0.0f, 980.f};
 	sf::FloatRect bounds; // window boundaries
 	const float stepdt;
@@ -45,7 +47,8 @@ private:
 	void applyGravity()
 	{
 		for (auto& obj : objects)
-			obj.accelerate(gravity);
+			if(!obj.isFixed())
+				obj.accelerate(gravity);
 	}
 
 	void updatePositions(float dt)
@@ -54,13 +57,13 @@ private:
 			obj.updatePosition(dt);
 	}
 
-	void checkBoundaries()
+	void solveBoundaryConstraints()
 	{
 		for (auto& obj : objects)
 			obj.checkBoundaries(bounds);
 	}
 
-	void checkCollisionsNaive()
+	void solveCollisionsNaive()
 	{
 		const float responseCoef = 1.0f; // to adjust collision elasticity
 		// iterate on all objects
@@ -91,7 +94,7 @@ private:
 	}
 
 
-	void checkCollisions()
+	void solveCollisions()
 	{
 		populateGrid();
 		for(uint32_t cellIndex = 0; cellIndex < grid.width*grid.height; cellIndex++)
@@ -135,8 +138,19 @@ private:
 	        const float massRatio1 = obj1.getRadius() / (obj1.getRadius() + obj2.getRadius());
 	        const float massRatio2 = obj2.getRadius() / (obj1.getRadius() + obj2.getRadius());
 	        const float delta = 0.5f * responseCoef * (dist - minDist);
-	        obj1.setPosition(obj1.getPosition() - distVecNor * (massRatio2 * delta));
-	        obj2.setPosition(obj2.getPosition() + distVecNor * (massRatio1 * delta));
+	        if (obj1.isFixed() && !obj2.isFixed())
+			{
+				obj2.setPosition(obj2.getPosition() + distVecNor * delta);
+			}
+			else if (!obj1.isFixed() && obj2.isFixed())
+			{
+				obj1.setPosition(obj1.getPosition() - distVecNor * delta);
+			}
+			else if (!obj1.isFixed() && !obj2.isFixed())
+			{
+				obj1.setPosition(obj1.getPosition() - distVecNor * (massRatio2 * delta));
+				obj2.setPosition(obj2.getPosition() + distVecNor * (massRatio1 * delta));
+			}
 	    }
 	}
 
@@ -175,12 +189,39 @@ private:
 	    return neighbors;
 	}
 
+	void solveLinkConstraints()
+	{
+	    for(Link& link : links)
+	    {
+	        VerletObject& obj1 = objects[link.getFirst()];
+	        VerletObject& obj2 = objects[link.getSecond()];
+
+	        sf::Vector2f distVec = obj2.getPosition() - obj1.getPosition();
+	        float dist = sqrt(distVec.x * distVec.x + distVec.y * distVec.y);
+	        const sf::Vector2f distVecNor = distVec / dist;
+	        const float delta = 0.5f * (dist - link.getRestLength());
+
+	        sf::Vector2f correction = distVecNor * delta;
+
+	        if(link.isSpring())
+	        {
+	            correction *= link.getStiffness(); // The spring force is scaled by stiffness
+	        }
+	        if(!obj1.isFixed())
+	        	obj1.setPosition(obj1.getPosition() + correction);
+	        if(!obj2.isFixed())
+	        	obj2.setPosition(obj2.getPosition() - correction);
+	    }
+	}
+
 public:
-	Engine(sf::FloatRect bounds, float stepdt, int subSteps, float objRadius);
+	Engine(sf::FloatRect bounds, float stepdt, int subSteps, float cellSize);
 	void update();
 //	void addObject(VerletObject o);
 	std::vector<VerletObject>& getObjects();
+	std::vector<Link>& getLinks();
 	float getTimeStep();
 	float getTimeSubstep();
 	void setObjectVelocity(VerletObject& object, sf::Vector2f v);
+	const CollisionGrid& getGrid() const;
 };

@@ -2,8 +2,8 @@
 
 #include "VerletObject.hpp"
 
-VerletObject::VerletObject(sf::Vector2f position, float radius)
-: position(position), prevPosition(position), acceleration(0.0f, 0.0f), radius(radius)
+VerletObject::VerletObject(sf::Vector2f position, float radius, bool fixed)
+: position(position), prevPosition(position), acceleration(0.0f, 0.0f), radius(radius), fixed(fixed)
 {}
 
 void VerletObject::updatePosition(float dt)
@@ -69,4 +69,14 @@ float VerletObject::getRadius() const
 void VerletObject::setVelocity(sf::Vector2f v, float dt)
 {
 	prevPosition = position - (v * dt);
+}
+
+bool VerletObject::isFixed() const
+{
+	return fixed;
+}
+
+void VerletObject::setFixed()
+{
+	this->fixed = true;
 }
