@@ -18,6 +18,7 @@ void Engine::update()
 	{
 		applyGravity();
 		solveCollisions();
+		solveObjectLinkCollisions();
 		solveLinkConstraints();
 		solveBoundaryConstraints();
 		updatePositions(subdt);

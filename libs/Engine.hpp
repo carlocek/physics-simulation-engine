@@ -214,6 +214,48 @@ private:
 	    }
 	}
 
+	void solveObjectLinkCollisions()
+	{
+	    for(VerletObject& obj : objects)
+	    {
+	        for(Link& link : links)
+	        {
+	        	if(&obj != &objects[link.getFirst()] && &obj != &objects[link.getSecond()])
+	        		solveObjectLinkCollision(obj, link, objects);
+	        }
+	    }
+	}
+
+	void solveObjectLinkCollision(VerletObject& obj, const Link& link, std::vector<VerletObject>& objects)
+	{
+	    const sf::Vector2f& pos1 = objects[link.getFirst()].getPosition();
+	    const sf::Vector2f& pos2 = objects[link.getSecond()].getPosition();
+	    // find the closest point on the segment pos1-pos2 to objPos
+	    sf::Vector2f segment = pos2 - pos1;
+	    float segmentLengthSquared = segment.x * segment.x + segment.y * segment.y;
+
+	    float t = std::max(0.f, std::min(1.f, ((obj.getPosition() - pos1).x * segment.x + (obj.getPosition() - pos1).y * segment.y) / segmentLengthSquared));
+	    sf::Vector2f closestPoint = pos1 + t * segment;
+	    // move the object away from the closest point on the segment
+	    sf::Vector2f distVec = obj.getPosition() - closestPoint;
+	    float dist = sqrt(distVec.x * distVec.x + distVec.y * distVec.y);
+	    if(dist < obj.getRadius())
+	    {
+	        sf::Vector2f distVecNor = distVec / dist;
+	        float overlap = obj.getRadius() - dist;
+	        obj.setPosition(obj.getPosition() + distVecNor * overlap);
+	        // adjust the link's end objects
+	        if(!objects[link.getFirst()].isFixed())
+	        {
+	            objects[link.getFirst()].setPosition(objects[link.getFirst()].getPosition() - distVecNor * overlap * 0.5f);
+	        }
+	        if(!objects[link.getSecond()].isFixed())
+	        {
+	            objects[link.getSecond()].setPosition(objects[link.getSecond()].getPosition() - distVecNor * overlap * 0.5f);
+	        }
+	    }
+	}
+
 public:
 	Engine(sf::FloatRect bounds, float stepdt, int subSteps, float cellSize);
 	void update();

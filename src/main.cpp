@@ -1,4 +1,6 @@
 #include <SFML/Graphics.hpp>
+#include <TGUI/TGUI.hpp>
+#include <TGUI/Backend/SFML-Graphics.hpp>
 #include <iostream>
 #include <cmath>
 
@@ -55,6 +57,15 @@ int main()
     sf::FloatRect windowBounds(0, 0, windowSize.x, windowSize.y);
     Engine engine(windowBounds, timeStep, subSteps, 2.0*objRadius);
     Renderer renderer(window);
+
+//  tgui::Gui gui{window};
+//  auto button = tgui::Button::create();
+//	button->setRenderer(theme.getRenderer("Button"));
+//	button->setPosition(75, 70);
+//	button->setText("OK");
+//	button->setSize(100, 30);
+//	button->onPress([=]{ child->setVisible(false); });
+//	gui.add(button);
 
     int objCount = 0;
     int selectedObj = -1;
@@ -161,7 +172,7 @@ int main()
 			std::cout << "max objects: " + std::to_string(objCount) << std::endl;
 		}
 
-		if (simulationRunning)
+		if(simulationRunning)
 			engine.update();
 		window.clear(sf::Color::Black);
 		renderer.render(engine);
@@ -170,6 +181,8 @@ int main()
 		info.setFillColor(sf::Color::White);
 		info.setPosition(10, 10);
 		window.draw(info);
+
+//		gui.draw();
 
 		window.display();
 	}
