@@ -30,6 +30,7 @@ int selectObjectAtPosition(Engine& engine, const sf::Vector2f& position)
 
 int main()
 {
+	// TODO: adjust main with functions to easily switch between simulations (collisions, cloth, free mode)
 	const int WIN_WIDTH = 1000;
 	const int WIN_HEIGHT = 1000;
 	const float frameRate = 60.f;
@@ -41,6 +42,7 @@ int main()
 	const float angle  = -M_PI/6.f;
 	const int maxObjCount = 8000;
 	const float objRadius = 10.f;
+	const float objRigidness = 1.0f;
 	const float linkStiffness = 1.f;
 
 	sf::Font font;
@@ -95,12 +97,12 @@ int main()
 					if (!simulationRunning) {
 						if(addObj)
 						{
-							VerletObject obj(mousePos, objRadius, false);
+							VerletObject obj(mousePos, objRadius, objRigidness, false);
 							engine.getObjects().push_back(obj);
 						}
 						else if(addObjFixed)
 						{
-							VerletObject obj(mousePos, objRadius, true);
+							VerletObject obj(mousePos, objRadius, objRigidness, true);
 							engine.getObjects().push_back(obj);
 						}
 						else if(addLink)

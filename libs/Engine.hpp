@@ -126,7 +126,7 @@ private:
 
 	void solveCollision(VerletObject& obj1, VerletObject& obj2)
 	{
-		const float responseCoef = 1.0f;
+		const float responseCoef = (obj1.getRigidness()+obj2.getRigidness()) / 2;
 		const float eps = 0.0001f;
 	    const sf::Vector2f distVec = obj1.getPosition() - obj2.getPosition();
 	    const float distSqr = distVec.x * distVec.x + distVec.y * distVec.y;
