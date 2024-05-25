@@ -16,9 +16,11 @@ void Engine::update()
 	float subdt = getTimeSubstep();
 	for(uint8_t i = 0; i < subSteps; i++)
 	{
-		checkCollisions();
-		checkBoundaries();
 		applyGravity();
+		solveCollisions();
+		solveObjectLinkCollisions();
+		solveLinkConstraints();
+		solveBoundaryConstraints();
 		updatePositions(subdt);
 	}
 }
@@ -26,6 +28,11 @@ void Engine::update()
 std::vector<VerletObject>& Engine::getObjects()
 {
 	return objects;
+}
+
+std::vector<Link>& Engine::getLinks()
+{
+	return links;
 }
 
 //void Engine::addObject(VerletObject o)
@@ -48,3 +55,7 @@ void Engine::setObjectVelocity(VerletObject &object, sf::Vector2f v)
 	object.setVelocity(v, getTimeSubstep());
 }
 
+const CollisionGrid& Engine::getGrid() const
+{
+	return grid;
+}

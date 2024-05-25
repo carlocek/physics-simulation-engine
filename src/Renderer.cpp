@@ -19,8 +19,25 @@ void Renderer::render(Engine& engine)
 		circle.setPosition(obj.getPosition());
 		circle.setScale(obj.getRadius(), obj.getRadius());
 		circle.setFillColor(obj.getColor());
-		circle.setOutlineThickness(0.1f);
-		circle.setOutlineColor(sf::Color::Green);
+		if(obj.isFixed())
+		{
+			circle.setOutlineThickness(0.5f);
+			circle.setOutlineColor(sf::Color::Green);
+		}
+		else
+		{
+			circle.setOutlineThickness(0.0f); // Reset outline for non-fixed objects
+			circle.setOutlineColor(sf::Color::Transparent); // This can be any color as thickness is 0
+		}
 		window.draw(circle);
+	}
+
+	for(const auto& link : engine.getLinks())
+	{
+		sf::Vertex line[] = {
+			sf::Vertex(engine.getObjects()[link.getFirst()].getPosition(), sf::Color::White),
+			sf::Vertex(engine.getObjects()[link.getSecond()].getPosition(), sf::Color::White)
+		};
+		window.draw(line, 2, sf::Lines);
 	}
 }

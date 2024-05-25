@@ -1,9 +1,10 @@
 #include <SFML/Graphics.hpp>
 
 #include "VerletObject.hpp"
+#include <iostream>
 
-VerletObject::VerletObject(sf::Vector2f position, float radius)
-: position(position), prevPosition(position), acceleration(0.0f, 0.0f), radius(radius)
+VerletObject::VerletObject(sf::Vector2f position, float radius, float rigidness, bool fixed)
+: position(position), prevPosition(position), acceleration(0.0f, 0.0f), radius(radius), rigidness(rigidness), fixed(fixed)
 {}
 
 void VerletObject::updatePosition(float dt)
@@ -26,23 +27,31 @@ void VerletObject::checkBoundaries(sf::FloatRect bounds)
 {
 	if(position.x - radius < bounds.left)
 	{
-		position.x = bounds.left + radius;
-		prevPosition.x = 2 * position.x - prevPosition.x;
+		const float dist = position.x;
+		const float delta = 0.5f * rigidness * (radius - dist);
+		const sf::Vector2f distVecNor = {1.0f, 0.0f};
+		setPosition(getPosition() + distVecNor * delta);
 	}
 	if(position.x + radius > bounds.left + bounds.width)
 	{
-		position.x = bounds.left + bounds.width - radius;
-		prevPosition.x = 2 * position.x - prevPosition.x;
+		const float dist = bounds.left + bounds.width - position.x;
+		const float delta = 0.5f * rigidness * (radius - dist);
+		const sf::Vector2f distVecNor = {1.0f, 0.0f};
+		setPosition(getPosition() - distVecNor * delta);
 	}
 	if(position.y - radius < bounds.top)
 	{
-		position.y = bounds.top + radius;
-		prevPosition.y = 2 * position.y - prevPosition.y;
+		const float dist = position.y;
+		const float delta = 0.5f * rigidness * (radius - dist);
+		const sf::Vector2f distVecNor = {0.0f, 1.0f};
+		setPosition(getPosition() + distVecNor * delta);
 	}
 	if(position.y + radius > bounds.top + bounds.height)
 	{
-		position.y = bounds.top + bounds.height - radius;
-		prevPosition.y = 2 * position.y - prevPosition.y;
+		const float dist = bounds.top + bounds.height - position.y;
+		const float delta = 0.5f * rigidness * (radius - dist);
+		const sf::Vector2f distVecNor = {0.0f, 1.0f};
+		setPosition(getPosition() - distVecNor * delta);
 	}
 }
 
@@ -69,4 +78,19 @@ float VerletObject::getRadius() const
 void VerletObject::setVelocity(sf::Vector2f v, float dt)
 {
 	prevPosition = position - (v * dt);
+}
+
+bool VerletObject::isFixed() const
+{
+	return fixed;
+}
+
+float VerletObject::getRigidness() const
+{
+	return rigidness;
+}
+
+void VerletObject::setFixed()
+{
+	this->fixed = true;
 }
