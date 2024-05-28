@@ -243,7 +243,8 @@ private:
 	    {
 	        sf::Vector2f distVecNor = distVec / dist;
 	        float overlap = obj.getRadius() - dist;
-	        obj.setPosition(obj.getPosition() + distVecNor * overlap);
+	        if(!obj.isFixed())
+	        	obj.setPosition(obj.getPosition() + distVecNor * overlap);
 	        // adjust the link's end objects
 	        if(!objects[link.getFirst()].isFixed())
 	        {
