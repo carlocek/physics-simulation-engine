@@ -35,7 +35,7 @@ void collisionSimulation(Engine& engine, sf::Clock& spawnClock, int& objCount, c
 	const float objectSpawnSpeed = 1000.f;
 	const float angle = -M_PI/6.0f;
 	const sf::Vector2f objectSpawnPosition = {100.0f, 100.0f};
-	if(objCount < maxObjCount && spawnClock.getElapsedTime().asSeconds() >= objectSpawnDelay)
+	if(spawnClock.getElapsedTime().asSeconds() >= objectSpawnDelay)
 	{
 		spawnClock.restart();
 		objCount++;
@@ -48,13 +48,12 @@ void collisionSimulation(Engine& engine, sf::Clock& spawnClock, int& objCount, c
 
 int main()
 {
-	// TODO: adjust main with functions to easily switch between simulations (collisions, cloth, free mode)
 	const int WIN_WIDTH = 1500;
 	const int WIN_HEIGHT = 1000;
 	const float frameRate = 60.0f;
 	const float timeStep = 1.0f / frameRate;
 	const int subSteps = 4;
-	const float objRadius = 5.0f;
+	float objRadius = 5.0f;
 	const float objRigidness = 1.0f;
 	const float linkStiffness = 1.0f;
 
@@ -82,41 +81,78 @@ int main()
 	panel->setPosition({"70%", "0%"});
 	gui.add(panel);
 
-	auto titleLabel = tgui::Label::create("Physics Simulation Engine");
-	titleLabel->setSize({"80%", "5%"});
-	titleLabel->setPosition({"10%", "5%"});
-	titleLabel->setTextSize(26);
-	titleLabel->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Center);
-	panel->add(titleLabel);
+	auto titleText = tgui::Label::create("Physics Simulation Engine");
+	titleText->setSize({"80%", "5%"});
+	titleText->setPosition({"10%", "5%"});
+	titleText->setTextSize(26);
+//	titleText->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Center);
+	panel->add(titleText);
+
+	auto instructionsText = tgui::Label::create("To create objects click on the button and then click on the black area to spawn them \n"
+			"To link objects click on the button and select two existing objects by clicking on them");
+	instructionsText->setSize({"80%", "10%"});
+	instructionsText->setPosition({"10%", "10%"});
+	instructionsText->setTextSize(16);
+//	instructionsText->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Left);
+	panel->add(instructionsText);
+
+	auto radiusSlider = tgui::Slider::create(5, 15);
+	radiusSlider->setSize({"80%", "3%"});
+	radiusSlider->setPosition({"10%", "25%"});
+	radiusSlider->setValue(5); // Default value
+	panel->add(radiusSlider);
+
+	auto radiusText = tgui::Label::create("Object radius: 5");
+	radiusText->setSize({"80%", "4%"});
+	radiusText->setPosition({"10%", "30%"});
+	radiusText->setTextSize(16);
+	panel->add(radiusText);
 
 	auto createObjectButton = tgui::Button::create("Create Object");
-	createObjectButton->setSize({"80%", "5%"});
-	createObjectButton->setPosition({"10%", "15%"});
+	createObjectButton->setSize({"40%", "4%"});
+	createObjectButton->setPosition({"10%", "35%"});
 	panel->add(createObjectButton);
 
 	auto createFixedObjectCheckbox = tgui::CheckBox::create("Fixed");
-	createFixedObjectCheckbox->setSize({"10%", "3%"});
-	createFixedObjectCheckbox->setPosition({"10%", "25%"});
+	createFixedObjectCheckbox->setSize({"10%", "4%"});
+	createFixedObjectCheckbox->setPosition({"55%", "35%"});
 	panel->add(createFixedObjectCheckbox);
 
 	auto createLinkButton = tgui::Button::create("Create Link");
-	createLinkButton->setSize({"80%", "5%"});
-	createLinkButton->setPosition({"10%", "35%"});
+	createLinkButton->setSize({"40%", "4%"});
+	createLinkButton->setPosition({"10%", "45%"});
 	panel->add(createLinkButton);
 
+	auto createSpringLinkCheckbox = tgui::CheckBox::create("Spring");
+	createSpringLinkCheckbox->setSize({"10%", "4%"});
+	createSpringLinkCheckbox->setPosition({"55%", "45%"});
+	panel->add(createSpringLinkCheckbox);
+
 	auto simulationComboBox = tgui::ComboBox::create();
-	simulationComboBox->setSize({"80%", "5%"});
-	simulationComboBox->setPosition({"10%", "45%"});
+	simulationComboBox->setSize({"80%", "4%"});
+	simulationComboBox->setPosition({"10%", "55%"});
 	simulationComboBox->addItem("Free Mode");
 	simulationComboBox->addItem("Collision Simulation");
-	simulationComboBox->addItem("Cloth Simulation");
+	simulationComboBox->addItem("Cloth Simulation (not implemented)");
 	simulationComboBox->setDefaultText("Select a mode");
 	panel->add(simulationComboBox);
 
-	auto runSimulationButton = tgui::Button::create("Run Simulation");
-	runSimulationButton->setSize({"80%", "5%"});
-	runSimulationButton->setPosition({"10%", "55%"});
+	auto runSimulationButton = tgui::Button::create("Start/Stop Simulation");
+	runSimulationButton->setSize({"80%", "4%"});
+	runSimulationButton->setPosition({"10%", "65%"});
 	panel->add(runSimulationButton);
+
+	auto objectCountText = tgui::Label::create("Objects: 0");
+	objectCountText->setSize({"80%", "5%"});
+	objectCountText->setPosition({"10%", "75%"});
+	objectCountText->setTextSize(16);
+	panel->add(objectCountText);
+
+	auto frameRateText = tgui::Label::create("FPS: 0");
+	frameRateText->setSize({"80%", "5%"});
+	frameRateText->setPosition({"10%", "80%"});
+	frameRateText->setTextSize(16);
+	panel->add(frameRateText);
 
 	createObjectButton->onClick([&](){addObj = !addObj; addLink = false;});
 	createLinkButton->onClick([&](){addObj = false; addLink = !addLink; firstObj = -1; secondObj = -1;});
@@ -130,7 +166,7 @@ int main()
 		{
 			collisionSimSelected = !collisionSimSelected;
 		}
-		else if(item == "Simulation 3")
+		else if(item == "Cloth Simulation (not implemented)")
 		{
 		}
 	});
@@ -141,6 +177,16 @@ int main()
     sf::FloatRect windowBounds(0, 0, windowSize.x - panel->getFullSize().x, windowSize.y);
     Engine engine(windowBounds, timeStep, subSteps, 2.0*objRadius);
     Renderer renderer(window);
+
+    radiusSlider->onValueChange([&](float value)
+	{
+		radiusText->setText("Object radius: " + std::to_string(static_cast<int>(value)));
+		if(value > objRadius)
+		{
+			engine.setGridCellSize(2.0*value);
+		}
+		objRadius = value;
+	});
 
     sf::Clock frameClock;
     sf::Clock spawnClock;
@@ -169,6 +215,7 @@ int main()
 							bool fixed = createFixedObjectCheckbox->isChecked();
 							VerletObject obj(mousePos, objRadius, objRigidness, fixed);
 							engine.getObjects().push_back(obj);
+							objCount++;
 						}
 						else if(addLink)
 						{
@@ -212,6 +259,8 @@ int main()
 		{
 			std::cout << "framerate dropped below 20" << std::endl;
 			std::cout << "max objects: " + std::to_string(objCount) << std::endl;
+			simulationRunning = false;
+			collisionSimSelected = false;
 		}
 
 		if(simulationRunning)
@@ -219,10 +268,8 @@ int main()
 		window.clear(sf::Color::Black);
 		renderer.render(engine);
 
-		sf::Text info("objects: " + std::to_string(objCount), font, 14);
-		info.setFillColor(sf::Color::White);
-		info.setPosition(10, 10);
-		window.draw(info);
+		objectCountText->setText("Objects: " + std::to_string(objCount));
+		frameRateText->setText("FPS: " + std::to_string(static_cast<int>(currentFrameRate)));
 
 		gui.draw();
 

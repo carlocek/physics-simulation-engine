@@ -267,4 +267,5 @@ public:
 	float getTimeSubstep();
 	void setObjectVelocity(VerletObject& object, sf::Vector2f v);
 	const CollisionGrid& getGrid() const;
+	void setGridCellSize(float cellSize);
 };
