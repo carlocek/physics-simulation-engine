@@ -243,7 +243,8 @@ private:
 	    {
 	        sf::Vector2f distVecNor = distVec / dist;
 	        float overlap = obj.getRadius() - dist;
-	        obj.setPosition(obj.getPosition() + distVecNor * overlap);
+	        if(!obj.isFixed())
+	        	obj.setPosition(obj.getPosition() + distVecNor * overlap);
 	        // adjust the link's end objects
 	        if(!objects[link.getFirst()].isFixed())
 	        {
@@ -266,4 +267,5 @@ public:
 	float getTimeSubstep();
 	void setObjectVelocity(VerletObject& object, sf::Vector2f v);
 	const CollisionGrid& getGrid() const;
+	void setGridCellSize(float cellSize);
 };

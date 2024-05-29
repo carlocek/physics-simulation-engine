@@ -59,3 +59,11 @@ const CollisionGrid& Engine::getGrid() const
 {
 	return grid;
 }
+
+void Engine::setGridCellSize(float cellSize)
+{
+	grid.width = bounds.width / cellSize;
+	grid.height = bounds.height / cellSize;
+	grid.cellSize = cellSize;
+	grid.cells.resize(grid.width * grid.height);
+}
