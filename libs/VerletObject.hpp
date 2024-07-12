@@ -28,4 +28,6 @@ public:
 	bool isFixed() const;
 	void setFixed();
 	float getRigidness() const;
+	sf::Vector2f getPrevPosition() const;
+	void setPrevPosition(sf::Vector2f prevPosition);
 };

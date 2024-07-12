@@ -207,6 +207,21 @@ private:
 	        {
 	            correction *= link.getStiffness(); // The spring force is scaled by stiffness
 	        }
+
+//	        if (link.isSpring())
+//			{
+//				float springForce = link.getStiffness() * (dist - link.getRestLength());
+//				sf::Vector2f springCorrection = distVecNor * springForce;
+//
+//				// Adding damping to simulate realistic spring behavior
+//				float dampingFactor = 0.1f; // Adjust this value for more/less damping
+//				sf::Vector2f relativeVelocity = (obj2.getPosition() - obj2.getPrevPosition()) - (obj1.getPosition() - obj1.getPrevPosition());
+//				sf::Vector2f dampingForce = relativeVelocity * dampingFactor;
+//
+//				springCorrection -= dampingForce;
+//				correction = springCorrection;
+//			}
+
 	        if(!obj1.isFixed())
 	        	obj1.setPosition(obj1.getPosition() + correction);
 	        if(!obj2.isFixed())

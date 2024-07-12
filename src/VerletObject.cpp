@@ -94,3 +94,13 @@ void VerletObject::setFixed()
 {
 	this->fixed = true;
 }
+
+sf::Vector2f VerletObject::getPrevPosition() const
+{
+	return prevPosition;
+}
+
+void VerletObject::setPrevPosition(sf::Vector2f prevPosition)
+{
+	this->prevPosition = prevPosition;
+}
