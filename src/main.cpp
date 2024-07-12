@@ -55,7 +55,10 @@ int main()
 	const int subSteps = 4;
 	float objRadius = 5.0f;
 	const float objRigidness = 1.0f;
-	const float linkStiffness = 1.0f;
+	const float linkStiffnessLow = 0.001f;
+	const float linkStiffnessMedium = 0.01f;
+	const float linkStiffnessHigh = 0.1f;
+	float linkStiffness;
 
 	int objCount = 0;
 	int selectedObj = -1;
@@ -96,37 +99,47 @@ int main()
 //	instructionsText->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Left);
 	panel->add(instructionsText);
 
-	auto radiusSlider = tgui::Slider::create(5, 15);
-	radiusSlider->setSize({"80%", "3%"});
-	radiusSlider->setPosition({"10%", "25%"});
-	radiusSlider->setValue(5); // Default value
-	panel->add(radiusSlider);
-
-	auto radiusText = tgui::Label::create("Object radius: 5");
-	radiusText->setSize({"80%", "4%"});
-	radiusText->setPosition({"10%", "30%"});
-	radiusText->setTextSize(16);
-	panel->add(radiusText);
+//	auto radiusSlider = tgui::Slider::create(5, 15);
+//	radiusSlider->setSize({"80%", "3%"});
+//	radiusSlider->setStep(5);
+//	radiusSlider->setPosition({"10%", "25%"});
+//	radiusSlider->setValue(5); // Default value
+//	panel->add(radiusSlider);
+//
+//	auto radiusText = tgui::Label::create("Object radius: 5");
+//	radiusText->setSize({"80%", "4%"});
+//	radiusText->setPosition({"10%", "30%"});
+//	radiusText->setTextSize(16);
+//	panel->add(radiusText);
 
 	auto createObjectButton = tgui::Button::create("Create Object");
-	createObjectButton->setSize({"40%", "4%"});
+	createObjectButton->setSize({"25%", "4%"});
 	createObjectButton->setPosition({"10%", "35%"});
 	panel->add(createObjectButton);
 
 	auto createFixedObjectCheckbox = tgui::CheckBox::create("Fixed");
 	createFixedObjectCheckbox->setSize({"10%", "4%"});
-	createFixedObjectCheckbox->setPosition({"55%", "35%"});
+	createFixedObjectCheckbox->setPosition({"40%", "35%"});
 	panel->add(createFixedObjectCheckbox);
 
 	auto createLinkButton = tgui::Button::create("Create Link");
-	createLinkButton->setSize({"40%", "4%"});
+	createLinkButton->setSize({"25%", "4%"});
 	createLinkButton->setPosition({"10%", "45%"});
 	panel->add(createLinkButton);
 
 	auto createSpringLinkCheckbox = tgui::CheckBox::create("Spring");
 	createSpringLinkCheckbox->setSize({"10%", "4%"});
-	createSpringLinkCheckbox->setPosition({"55%", "45%"});
+	createSpringLinkCheckbox->setPosition({"40%", "45%"});
 	panel->add(createSpringLinkCheckbox);
+
+	auto stiffnessComboBox = tgui::ComboBox::create();
+	stiffnessComboBox->setSize({"25%", "4%"});
+	stiffnessComboBox->setPosition({"65%", "45%"});
+	stiffnessComboBox->addItem("Low");
+	stiffnessComboBox->addItem("Medium");
+	stiffnessComboBox->addItem("High");
+	stiffnessComboBox->setDefaultText("Stiffness");
+	panel->add(stiffnessComboBox);
 
 	auto simulationComboBox = tgui::ComboBox::create();
 	simulationComboBox->setSize({"80%", "4%"});
@@ -156,6 +169,25 @@ int main()
 
 	createObjectButton->onClick([&](){addObj = !addObj; addLink = false;});
 	createLinkButton->onClick([&](){addObj = false; addLink = !addLink; firstObj = -1; secondObj = -1;});
+	stiffnessComboBox->onItemSelect([&](const tgui::String& item)
+	{
+		if(item == "Low")
+		{
+			linkStiffness = linkStiffnessLow;
+		}
+		else if(item == "Medium")
+		{
+			linkStiffness = linkStiffnessMedium;
+		}
+		else if(item == "High")
+		{
+			linkStiffness = linkStiffnessHigh;
+		}
+		else
+		{
+			linkStiffness = 1.0f;
+		}
+	});
 	simulationComboBox->onItemSelect([&](const tgui::String& item)
 	{
 		if(item == "Free Mode")
@@ -178,15 +210,15 @@ int main()
     Engine engine(windowBounds, timeStep, subSteps, 2.0*objRadius);
     Renderer renderer(window);
 
-    radiusSlider->onValueChange([&](float value)
-	{
-		radiusText->setText("Object radius: " + std::to_string(static_cast<int>(value)));
-		if(value > objRadius)
-		{
-			engine.setGridCellSize(2.0*value);
-		}
-		objRadius = value;
-	});
+//    radiusSlider->onValueChange([&](float value)
+//	{
+//		radiusText->setText("Object radius: " + std::to_string(static_cast<int>(value)));
+//		if(value != objRadius)
+//		{
+//			engine.setGridCellSize(2.0*value);
+//		}
+//		objRadius = value;
+//	});
 
     sf::Clock frameClock;
     sf::Clock spawnClock;
@@ -219,6 +251,7 @@ int main()
 						}
 						else if(addLink)
 						{
+							bool isSpring = createSpringLinkCheckbox->isChecked();
 							int selectedObj = selectObjectAtPosition(engine, mousePos);
 							if(selectedObj != -1)
 							{
@@ -232,7 +265,9 @@ int main()
 									sf::Vector2f pos1 = engine.getObjects()[firstObj].getPosition();
 									sf::Vector2f pos2 = engine.getObjects()[secondObj].getPosition();
 									float restLength = sqrt((pos2.x - pos1.x) * (pos2.x - pos1.x) + (pos2.y - pos1.y) * (pos2.y - pos1.y));
-									Link link(firstObj, secondObj, restLength, linkStiffness, false);
+									if(isSpring)
+										restLength *= 0.5f;
+									Link link(firstObj, secondObj, restLength, linkStiffness, isSpring);
 									engine.getLinks().push_back(link);
 									firstObj = -1;
 									secondObj = -1;
