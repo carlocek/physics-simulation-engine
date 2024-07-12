@@ -265,6 +265,7 @@ int main()
 									sf::Vector2f pos1 = engine.getObjects()[firstObj].getPosition();
 									sf::Vector2f pos2 = engine.getObjects()[secondObj].getPosition();
 									float restLength = sqrt((pos2.x - pos1.x) * (pos2.x - pos1.x) + (pos2.y - pos1.y) * (pos2.y - pos1.y));
+									//setting rest length to half the initial distance between linked objects to see sprng effect
 									if(isSpring)
 										restLength *= 0.5f;
 									Link link(firstObj, secondObj, restLength, linkStiffness, isSpring);
