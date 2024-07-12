@@ -146,7 +146,7 @@ int main()
 	simulationComboBox->setPosition({"10%", "55%"});
 	simulationComboBox->addItem("Free Mode");
 	simulationComboBox->addItem("Collision Simulation");
-	simulationComboBox->addItem("Cloth Simulation (not implemented)");
+//	simulationComboBox->addItem("Cloth Simulation (not implemented)");
 	simulationComboBox->setDefaultText("Select a mode");
 	panel->add(simulationComboBox);
 
@@ -198,9 +198,9 @@ int main()
 		{
 			collisionSimSelected = !collisionSimSelected;
 		}
-		else if(item == "Cloth Simulation (not implemented)")
-		{
-		}
+//		else if(item == "Cloth Simulation (not implemented)")
+//		{
+//		}
 	});
 	runSimulationButton->onClick([&](){simulationRunning = !simulationRunning;});
 	//END GUI CREATION
